@@ -1,4 +1,7 @@
-# Lesson Plan :: Javascript Game Dev 
+# Workshop Plan :: Javascript Game Dev 
+
+## Acknowledgement
+This course is adopted from the Gamedev Canvas Content Kit: [link](http://end3r.github.io/Gamedev-Canvas-Content-Kit/). This workshop offers a more condensed lesson plan compared to the original, with improvements over several parts of the original code.
 
 ## References
 - W3School - HTML, CSS, Javascript searchable documentation: [link](https://www.w3schools.com/)
