@@ -103,9 +103,11 @@ function keyDownHandler(evt)
     switch(evt.key)
     {
         case "ArrowRight":
+        case "Right":
             isKeyRightPressed = true;
             break;
         case "ArrowLeft":
+        case "Left":
             isKeyLeftPressed = true;
             break;
     }
@@ -120,9 +122,11 @@ function keyUpHandler(evt)
     switch(evt.key)
     {
         case "ArrowRight":
+        case "Right":
             isKeyRightPressed = false;
             break;
         case "ArrowLeft":
+        case "Left":
             isKeyLeftPressed = false;
             break;
         case "Enter":
@@ -158,7 +162,7 @@ function updateBall(ctx)
     let isHittingRightWall = (xBall + xBallVelocity > (ctx.canvas.width - SIZE_BALL_RADIUS));
     let isHittingLeftWall  = (xBall + xBallVelocity < SIZE_BALL_RADIUS);
     let isHittingUpperWall = (yBall + yBallVelocity < SIZE_BALL_RADIUS);
-    let isHIttingLowerWall = (yBall + yBallVelocity > (ctx.canvas.height - SIZE_BALL_RADIUS));
+    let isHittingLowerWall = (yBall + yBallVelocity > (ctx.canvas.height - SIZE_BALL_RADIUS));
 
     // change direction of velocity when hitting the wall
     if (isHittingRightWall || isHittingLeftWall) 
@@ -169,7 +173,7 @@ function updateBall(ctx)
     {
         yBallVelocity = -yBallVelocity;
     }
-    else if (isHIttingLowerWall)
+    else if (isHittingLowerWall)
     {
         // ball is at the lower boundary of the canvas
         // is it hitting the paddle?

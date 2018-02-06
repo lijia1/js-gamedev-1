@@ -68,10 +68,11 @@ document.addEventListener("keyup",     keyUpHandler,     false);
 document.addEventListener("mousemove", mouseMoveHandler, false);
 // construct bricks
 let bricks = buildBricks(context);
-// initialize ball and paddle locations
-initBallPaddleLocations(context);
-// start game
-let mainGame = window.setInterval(main, 10, context);
+
+// handle to game
+let mainGame;
+
+startGame(context);
 
 /**
  * Main function of the game
@@ -138,6 +139,14 @@ function initBallPaddleLocations(ctx)
 
     xPaddle = (ctx.canvas.width - SIZE_PADDLE_WIDTH)/2;
     yPaddle = ctx.canvas.height - SIZE_PADDLE_HEIGHT;
+}
+
+function startGame(ctx)
+{
+    // initialize ball and paddle locations
+    initBallPaddleLocations(ctx);
+    // start game
+    mainGame = window.setInterval(main, 10, ctx);
 }
 
 /**
@@ -223,9 +232,11 @@ function keyDownHandler(evt)
     switch(evt.key)
     {
         case "ArrowRight":
+        case "Right":
             isKeyRightPressed = true;
             break;
         case "ArrowLeft":
+        case "Left":
             isKeyLeftPressed = true;
             break;
     }
@@ -240,9 +251,11 @@ function keyUpHandler(evt)
     switch(evt.key)
     {
         case "ArrowRight":
+        case "Right":
             isKeyRightPressed = false;
             break;
         case "ArrowLeft":
+        case "Left":
             isKeyLeftPressed = false;
             break;
         case "Enter":
@@ -278,7 +291,7 @@ function updateBall(ctx)
     let isHittingRightWall = (xBall + xBallVelocity > (ctx.canvas.width - SIZE_BALL_RADIUS));
     let isHittingLeftWall  = (xBall + xBallVelocity < SIZE_BALL_RADIUS);
     let isHittingUpperWall = (yBall + yBallVelocity < SIZE_BALL_RADIUS);
-    let isHIttingLowerWall = (yBall + yBallVelocity > (ctx.canvas.height - SIZE_BALL_RADIUS));
+    let isHittingLowerWall = (yBall + yBallVelocity > (ctx.canvas.height - SIZE_BALL_RADIUS));
 
     // change direction of velocity when hitting the wall
     if (isHittingRightWall || isHittingLeftWall) 
@@ -289,7 +302,7 @@ function updateBall(ctx)
     {
         yBallVelocity = -yBallVelocity;
     }
-    else if (isHIttingLowerWall)
+    else if (isHittingLowerWall)
     {
         // ball is at the lower boundary of the canvas
         // is it hitting the paddle?
@@ -307,7 +320,9 @@ function updateBall(ctx)
             }
             else
             {
-                initBallPaddleLocations(ctx);
+                window.clearInterval(mainGame);
+                writeText(ctx, "Live(s) left: " + numLives, ctx.canvas.width/2, ctx.canvas.height/2, "center", "40px Helvetica", "red");
+                window.setTimeout(startGame, 2000, ctx);
             }
         }
     }

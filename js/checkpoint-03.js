@@ -90,9 +90,11 @@ function keyDownHandler(evt)
     switch(evt.key)
     {
         case "ArrowRight":
+        case "Right":
             isKeyRightPressed = true;
             break;
         case "ArrowLeft":
+        case "Left":
             isKeyLeftPressed = true;
             break;
     }
@@ -107,9 +109,11 @@ function keyUpHandler(evt)
     switch(evt.key)
     {
         case "ArrowRight":
+        case "Right":
             isKeyRightPressed = false;
             break;
         case "ArrowLeft":
+        case "Left":
             isKeyLeftPressed = false;
             break;
      }
