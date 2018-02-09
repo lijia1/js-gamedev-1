@@ -12,12 +12,14 @@ const COLOR_BRICK_FILL_STYLE  = "#AA2222";
 const SIZE_BALL_RADIUS         = 10;
 const SIZE_PADDLE_HEIGHT       =  5;
 const SIZE_PADDLE_WIDTH        = 75;
+const SIZE_PADDLE_NUDGE        =  7;
 const SIZE_BRICK_HEIGHT        = 20;
 const SIZE_BRICK_WIDTH         = 75;
 const SIZE_BRICK_WALL_GAP_TOP  = 30;
 const SIZE_BRICK_WALL_GAP_LEFT = 30; 
 const SIZE_BRICK_BRICK_GAP     = 10;
-
+const SIZE_NUM_ROWS_BRICKS     =  5;
+const SIZE_NUM_COLS_BRICKS     =  3;
 
 /**
  * Global variables
@@ -26,38 +28,30 @@ const SIZE_BRICK_BRICK_GAP     = 10;
 let canvas = document.getElementById("myCanvas");
 let context = canvas.getContext("2d");
 
-// Number of Rows and Columns of bricks
-let numRowsOfBricks = 5;
-let numColsOfBricks = 3;
-
 // Ball's current coordinate
 let xBall, yBall;
 
 // Ball's current velocity
-let xBallVelocity =  2;
-let yBallVelocity = -2;
+let xBallVelocity, yBallVelocity;
 
 // Paddle's current coordinate
 let xPaddle, yPaddle;
-
-// Paddle's nudge displacement 
-let xPaddleNudge = 7;
 
 // Keyboard states
 let isKeyRightPressed = false;
 let isKeyLeftPressed  = false;
 
 // is Game Over?
-let isGameOver = false;
+let isGameOver;
 
 // number of bricks hit so far
-let numBricksHit = 0;
+let numBricksHit;
 
-// number of lives
-let numLives = 3;
+// number of lives left
+let numLives;
 
-// has user won?
-let isGameWon = false;
+// has player won?
+let isGameWon;
 
 // handle to game
 let mainGame;
@@ -76,7 +70,8 @@ resetGame();
 // construct bricks
 let bricks = buildBricks(context);
 
-startGame(context);
+initBallPaddle(context);
+mainGame = window.setInterval(main, 10, context);
 
 /**
  * Main draw loop of the game
@@ -102,7 +97,7 @@ function main(ctx)
     // draw number of lives remaining
     writeText(ctx, "Lives: " + numLives, ctx.canvas.width-65, 20, "left", "16px Helvetica", "black");
 
-    // check game-won condition
+    // display game-won message
     if (isGameWon)
     {
         window.clearInterval(mainGame);
@@ -115,7 +110,7 @@ function main(ctx)
     // update the ball's status
     updateBall(ctx);
 
-    // check game-over condition
+    // display game-over message
     if (isGameOver)
     {
         window.clearInterval(mainGame);
@@ -127,6 +122,9 @@ function main(ctx)
 
     // update bricks status
     updateBricks();
+
+    if (numBricksHit == SIZE_NUM_COLS_BRICKS * SIZE_NUM_ROWS_BRICKS)
+        isGameWon = true;    
     
     // update the paddle's status
     updatePaddle(ctx);    
@@ -160,39 +158,38 @@ function initBallPaddle(ctx)
 }
 
 /**
- * Jumpstart the draw loop
- * @param {object} ctx The 2D context of a Canvas 
- */
-function startGame(ctx)
-{
-    // initialize ball and paddle locations
-    initBallPaddle(ctx);
-    // start game
-    mainGame = window.setInterval(main, 10, ctx);
-}
-
-/**
  * Update bricks status - if any of the brick is hit
  */
 function updateBricks()
 {
-    for(let c = 0; c < numColsOfBricks; c++) 
-    {
-        for(let r = 0; r < numRowsOfBricks; r++) 
-        {
+    for(let c = 0; c < SIZE_NUM_COLS_BRICKS; c++) {
+        for(let r = 0; r < SIZE_NUM_ROWS_BRICKS; r++) {
             let b = bricks[c][r];
-            if(b.isHit == false) 
-            {
-                if((xBall > b.x && (xBall < b.x + SIZE_BRICK_WIDTH )) && 
-                   (yBall > b.y && (yBall < b.y + SIZE_BRICK_HEIGHT))) 
+            if(b.isHit == false) {
+                let xInRange = (xBall >= b.x && xBall <= b.x + SIZE_BRICK_WIDTH);
+                let yInRangeFromTop    = ((yBall + SIZE_BALL_RADIUS) >= b.y && 
+                                          (yBall + SIZE_BALL_RADIUS) <  b.y + SIZE_BRICK_HEIGHT);
+                let yInRangeFromBottom = ((yBall - SIZE_BALL_RADIUS) >  b.y && 
+                                          (yBall - SIZE_BALL_RADIUS) <= b.y + SIZE_BRICK_HEIGHT);
+                
+                let yInRange = (yBall >= b.y && yBall <= b.y + SIZE_BRICK_HEIGHT);
+                let xInRangeFromLeft  = ((xBall + SIZE_BALL_RADIUS) >= b.x &&
+                                         (xBall + SIZE_BALL_RADIUS) <  b.x + SIZE_BRICK_WIDTH);
+                let xInRangeFromRight = ((xBall - SIZE_BALL_RADIUS) >  b.x &&
+                                         (xBall - SIZE_BALL_RADIUS) <= b.x + SIZE_BRICK_WIDTH);
+                
+                if (xInRange && (yInRangeFromTop || yInRangeFromBottom))
                 {
                     yBallVelocity = -yBallVelocity;
                     b.isHit = true;
                     numBricksHit ++;
-                    
-                    if (numBricksHit == numColsOfBricks * numRowsOfBricks)
-                        isGameWon = true;
                 }
+                else if (yInRange && (xInRangeFromLeft || xInRangeFromRight))
+                {
+                    xBallVelocity = -xBallVelocity;
+                    b.isHit = true;
+                    numBricksHit ++;
+                }              
             }
         }
     }
@@ -205,9 +202,9 @@ function updateBricks()
 function buildBricks()
 {
     let returnValue = [];
-    for(let c = 0; c < numColsOfBricks; c++) {
+    for(let c = 0; c < SIZE_NUM_COLS_BRICKS; c++) {
         returnValue[c] = [];
-        for(let r = 0; r < numRowsOfBricks; r++) {
+        for(let r = 0; r < SIZE_NUM_ROWS_BRICKS; r++) {
             let xBrick = (r*(SIZE_BRICK_WIDTH  + SIZE_BRICK_BRICK_GAP)) + SIZE_BRICK_WALL_GAP_LEFT;
             let yBrick = (c*(SIZE_BRICK_HEIGHT + SIZE_BRICK_BRICK_GAP)) + SIZE_BRICK_WALL_GAP_TOP;
             let brick = {x: xBrick, y: yBrick, isHit: false};
@@ -223,9 +220,9 @@ function buildBricks()
  */
 function drawBricks(ctx)
 {
-    for(let c = 0; c < numColsOfBricks; c++)
+    for(let c = 0; c < SIZE_NUM_COLS_BRICKS; c++)
     {
-        for(let r = 0; r < numRowsOfBricks; r++)
+        for(let r = 0; r < SIZE_NUM_ROWS_BRICKS; r++)
         {
             let brick = bricks[c][r];
             if (!brick.isHit)
@@ -296,7 +293,8 @@ function keyUpHandler(evt)
             {
                 resetGame();
                 bricks = buildBricks();
-                startGame(context);
+                initBallPaddle(context);
+                mainGame = window.setInterval(main, 10, context);
                 return;
             }
             break;
@@ -310,10 +308,10 @@ function keyUpHandler(evt)
 function updatePaddle(ctx)
 {
     if(isKeyRightPressed && xPaddle < ctx.canvas.width - SIZE_PADDLE_WIDTH) {
-        xPaddle += Math.abs(xPaddleNudge);
+        xPaddle += SIZE_PADDLE_NUDGE;
     }
     else if(isKeyLeftPressed && xPaddle > 0) {
-        xPaddle -= Math.abs(xPaddleNudge);
+        xPaddle -= SIZE_PADDLE_NUDGE;
     }
 }
 
@@ -357,7 +355,8 @@ function updateBall(ctx)
             {
                 window.clearInterval(mainGame);
                 writeText(ctx, "Live(s) left: " + numLives, ctx.canvas.width/2, ctx.canvas.height/2, "center", "40px Helvetica", "red");
-                window.setTimeout(startGame, 2000, ctx);
+                initBallPaddle(ctx);
+                window.setTimeout(function(c){mainGame = window.setInterval(main, 10, c);}, 2000, ctx);
             }
         }
     }

@@ -10,9 +10,16 @@ A simplified version of Breakout [https://en.wikipedia.org/wiki/Breakout_(video_
 
 ---
 
-# 0. What you need
+# What you need
 - Basic HTML5/CSS/Javascript knowledge
 - Open mind, eager to learn
+
+---
+
+# What you will learn
+- Build a simple yet full-fledged game in Javascript
+- Essential elements in any game, such as animation, collision detection, building monsters (bricks), scoring, lives, winning/losing conditions
+- Advanced Javascript concepts such as event handling, JSON, anonymous function
 
 ---
 
@@ -805,7 +812,7 @@ Now we take into consideration the paddle's position.
 
 ---
 
-# 5. Add bricks
+# 5. Add monsters (or bricks)
 
 ---
 
@@ -922,7 +929,9 @@ Ball can hit brick on any of its four sides.
 
 ---
 
-# Detecting a hit - 3 _from top or bottom_
+# Detecting a hit - 3 
+
+When hit from top or bottom
 
     !javascript
     let xInRange = (xBall >= b.x && 
@@ -947,9 +956,9 @@ Write code to compute `isHitFromLeftOrRight`.
 
 ---
 
-# Detecting a hit - 4 _from left or right_
+# Detecting a hit - 4 
 
-Answer to Exercise 5
+Answer to Exercise 5 - when hit from left or right
 
     !javascript
     let yInRange = (yBall >= b.y && 
@@ -991,16 +1000,200 @@ Answer to Exercise 5
 
 ---
 
+# Rebuilding the bricks before restarting
+
+    !javascript
+    function keyUpHandler(evt)
+    {
+        ...
+            case "Enter":
+                if (isGameOver)
+                {
+                    resetGame();
+                    bricks = buildBricks();
+                    initBallPaddle(context);
+                    mainGame = window.setInterval(main, 10, context);
+                    return;
+                }
+                break;
+    }
+
+---
+
 # Checkpoint 5
 
 ![Checkpoint 5](slide_assets/img/checkpoint_5.png)
 
 ---
 
-# 6. Keep track of scores, lives
+# 6. Keep track of score, lives
 
 ---
 
+# Adding more game states
 
+    !javascript
+    // is Game Over?
+    let isGameOver;
+
+    // number of bricks hit so far
+    let numBricksHit;
+
+    // number of lives left
+    let numLives;
+
+    // has player won?
+    let isGameWon;
+
+    ...
+
+    function resetGame()
+    {
+        isGameOver    = false;
+        numBricksHit  =  0;
+        numLives      =  3;
+        isGameWon     = false;
+    }
+
+---
+
+# Keeping track of score
+
+    !javascript
+    function updateBricks()
+    {
+        ...
+        if (xInRange && (yInRangeFromTop || yInRangeFromBottom))
+        {
+            yBallVelocity = -yBallVelocity;
+            b.isHit = true;
+            numBricksHit ++;
+        }
+        else if (yInRange && (xInRangeFromLeft || xInRangeFromRight))
+        {
+            xBallVelocity = -xBallVelocity;
+            b.isHit = true;
+            numBricksHit ++;
+        }             
+    }
+
+---
+
+# Keeping track of lives - 1 _What's wrong?_
+
+    !javascript
+    function updateBall(ctx)
+    {
+            if (isPaddleInRange)
+            ...
+            else
+            {
+                numLives --;
+                if (numLives == 0)
+                {
+                    isGameOver = true;
+                }
+                else
+                {
+                    window.clearInterval(mainGame);
+                    writeText(ctx, "Live(s) left: " + numLives, 
+                              ctx.canvas.width/2, ctx.canvas.height/2, 
+                              "center", "40px Helvetica", "red");
+                    initBallPaddle(ctx);
+                    mainGame = window.setInterval(main, 10, ctx);
+                }
+            }
+    }
+
+---
+
+# Keeping track of lives - 2
+
+Use `window.setTimeout()` to delay the execution of a function. [documentation](https://www.w3schools.com/jsref/met_win_settimeout.asp)
+
+To turn a statement into a function, we wrap it in an _anonymous function_.
+
+    !javascript
+    window.setTimeout(function(c)
+                      { 
+                          mainGame = window.setInterval(main, 10, c);
+                      }, 
+                      2000, 
+                      context);
+---
+
+# Displaying score and lives
+
+    !javascript
+    function main(ctx)
+    {
+        ...
+        /* after drawing the ball and paddle */
+
+        // draw the score
+        writeText(ctx, "Score: " + numBricksHit, 8, 20, 
+                  "left", "16px Helvetica", "black");
+
+        // draw number of lives remaining
+        writeText(ctx, "Lives: " + numLives, ctx.canvas.width-65, 20, 
+                  "left", "16px Helvetica", "black");
+
+        ...
+    }
+
+---
+
+# Winning the game - 1
+
+    !javascript
+    function main(ctx)
+    {
+        ...
+        // check game-won condition
+        if (isGameWon)
+        {
+            window.clearInterval(mainGame);
+            writeText(ctx, "You Won!", 
+                    ctx.canvas.width/2, ctx.canvas.height/2, "center", "40px Helvetica", "red");
+            writeText(ctx, "Press the ENTER key to continue", 
+                    ctx.canvas.width/2, ctx.canvas.height/2+40, "center", "12pt Helvetica", "red");        
+        }
+        updateBall(ctx);
+        ...
+        updateBricks(ctx);
+
+        if (numBricksHit == SIZE_NUM_COLS_BRICKS * SIZE_NUM_ROWS_BRICKS)
+            isGameWon = true;
+    }
+
+---
+
+# Winning the game - 2
+
+    !javascript
+    function keyUpHandler(evt)
+    {
+        ...
+            case "Enter":
+                if (isGameOver || isGameWon)
+                {
+                    resetGame();
+                    bricks = buildBricks();
+                    initBallPaddle(context);
+                    mainGame = window.setInterval(main, 10, context);
+                    return;
+                }
+                break;
+    }
+
+---
+
+# Checkpoint 6
+
+![Checkpoint 6](slide_assets/img/checkpoint_6.png)
+
+---
+
+# The END :-)
 
 ---

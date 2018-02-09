@@ -42,7 +42,7 @@ let isKeyRightPressed = false;
 let isKeyLeftPressed  = false;
 
 // is Game Over?
-let isGameOver = false;
+let isGameOver;
 
 // handle to game
 let mainGame;
@@ -258,6 +258,7 @@ function keyUpHandler(evt)
             if (isGameOver)
             {
                 resetGame();
+                bricks = buildBricks();
                 initBallPaddle(context);
                 mainGame = window.setInterval(main, 10, context);
                 return;
