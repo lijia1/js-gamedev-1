@@ -1,0 +1,12 @@
+pre {
+    font-size: 18px;
+}
+
+body {
+    font-size: 24px;
+}
+
+/* fix for TOC behind slide */
+.sidebar {
+    z-index: 100;
+}

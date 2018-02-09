@@ -59,6 +59,9 @@ let numLives = 3;
 // has user won?
 let isGameWon = false;
 
+// handle to game
+let mainGame;
+
 /**
  * Entry point 
  */
@@ -66,16 +69,17 @@ let isGameWon = false;
 document.addEventListener("keydown",   keyDownHandler,   false);
 document.addEventListener("keyup",     keyUpHandler,     false);
 document.addEventListener("mousemove", mouseMoveHandler, false);
+
+// reset game states (e.g. score, lives)
+resetGame();
+
 // construct bricks
 let bricks = buildBricks(context);
-
-// handle to game
-let mainGame;
 
 startGame(context);
 
 /**
- * Main function of the game
+ * Main draw loop of the game
  * @param {object} ctx The 2D context of a Canvas 
  */
 function main(ctx)
@@ -90,7 +94,7 @@ function main(ctx)
     drawCircle(ctx, xBall, yBall, SIZE_BALL_RADIUS, COLOR_BALL_FILL_STYLE, "");
 
     // draw the paddle
-    drawRect(ctx, xPaddle, yPaddle, SIZE_PADDLE_WIDTH, SIZE_PADDLE_HEIGHT, COLOR_PADDLE_FILL_STYLE);
+    drawRect(ctx, xPaddle, yPaddle, SIZE_PADDLE_WIDTH, SIZE_PADDLE_HEIGHT, COLOR_PADDLE_FILL_STYLE, "");
 
     // draw the score
     writeText(ctx, "Score: " + numBricksHit, 8, 20, "left", "16px Helvetica", "black");
@@ -111,12 +115,6 @@ function main(ctx)
     // update the ball's status
     updateBall(ctx);
 
-    // update the paddle's status
-    updatePaddle(ctx);
-
-    // update bricks status
-    updateBricks();
-
     // check game-over condition
     if (isGameOver)
     {
@@ -126,25 +124,49 @@ function main(ctx)
         writeText(ctx, "Press the ENTER key to continue", 
                   ctx.canvas.width/2, ctx.canvas.height/2+40, "center", "12pt Helvetica", "red");
     }
+
+    // update bricks status
+    updateBricks();
+    
+    // update the paddle's status
+    updatePaddle(ctx);    
+}
+
+/** 
+ * Reset game state 
+ */
+function resetGame()
+{
+    isGameOver    = false;
+    numBricksHit  =  0;
+    numLives      =  3;
+    isGameWon     = false;
 }
 
 /**
- * 
+ * Initialize ball and paddle position
  * @param {object} ctx The 2D context of a Canvas
  */
-function initBallPaddleLocations(ctx)
+function initBallPaddle(ctx)
 {
     xBall = ctx.canvas.width / 2;
     yBall = ctx.canvas.height - 30;
 
     xPaddle = (ctx.canvas.width - SIZE_PADDLE_WIDTH)/2;
     yPaddle = ctx.canvas.height - SIZE_PADDLE_HEIGHT;
+
+    xBallVelocity =  2;
+    yBallVelocity = -2;
 }
 
+/**
+ * Jumpstart the draw loop
+ * @param {object} ctx The 2D context of a Canvas 
+ */
 function startGame(ctx)
 {
     // initialize ball and paddle locations
-    initBallPaddleLocations(ctx);
+    initBallPaddle(ctx);
     // start game
     mainGame = window.setInterval(main, 10, ctx);
 }
@@ -218,8 +240,19 @@ function drawBricks(ctx)
  */
 function mouseMoveHandler(evt) {
     let relativeX = evt.clientX - canvas.offsetLeft;
-    if(relativeX > 0 && relativeX < canvas.width) {
+    let outLeft  = relativeX - SIZE_PADDLE_WIDTH/2 <= 0;
+    let outRight = relativeX >= canvas.width - SIZE_PADDLE_WIDTH/2;
+    if ( !outLeft && !outRight) 
+    {
         xPaddle = relativeX - SIZE_PADDLE_WIDTH/2;
+    }
+    else if ( outLeft )
+    {
+        xPaddle = 0;
+    }
+    else if ( outRight )
+    {
+        xPaddle = canvas.width - SIZE_PADDLE_WIDTH;
     }
 }
 
@@ -261,7 +294,9 @@ function keyUpHandler(evt)
         case "Enter":
             if (isGameOver || isGameWon)
             {
-                document.location.reload();
+                resetGame();
+                bricks = buildBricks();
+                startGame(context);
                 return;
             }
             break;

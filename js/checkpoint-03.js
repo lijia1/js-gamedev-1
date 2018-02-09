@@ -11,6 +11,7 @@ const COLOR_PADDLE_FILL_STYLE = "#808080"
 const SIZE_BALL_RADIUS        = 10;
 const SIZE_PADDLE_HEIGHT      = 5;
 const SIZE_PADDLE_WIDTH       = 75;
+const SIZE_PADDLE_NUDGE       = 7;
 
 /**
  * Global variables
@@ -31,9 +32,6 @@ let yBallVelocity = -2;
 let xPaddle = (canvas.width - SIZE_PADDLE_WIDTH)/2;
 let yPaddle = canvas.height - SIZE_PADDLE_HEIGHT;
 
-// Paddle's nudge displacement 
-let xPaddleNudge = 7;
-
 // Keyboard states
 let isKeyRightPressed = false;
 let isKeyLeftPressed  = false;
@@ -49,7 +47,7 @@ document.addEventListener("mousemove", mouseMoveHandler, false);
 window.setInterval(main, 10, context);
 
 /**
- * Main function of the game
+ * Main draw loop of the game
  * @param {object} ctx The 2D context of a Canvas 
  */
 function main(ctx)
@@ -61,7 +59,7 @@ function main(ctx)
     drawCircle(ctx, xBall, yBall, SIZE_BALL_RADIUS, COLOR_BALL_FILL_STYLE, "");
 
     // draw the paddle
-    drawRect(ctx, xPaddle, yPaddle, SIZE_PADDLE_WIDTH, SIZE_PADDLE_HEIGHT, COLOR_PADDLE_FILL_STYLE);
+    drawRect(ctx, xPaddle, yPaddle, SIZE_PADDLE_WIDTH, SIZE_PADDLE_HEIGHT, COLOR_PADDLE_FILL_STYLE, "");
 
     // update the ball's status
     updateBall(ctx);
@@ -76,8 +74,19 @@ function main(ctx)
  */
 function mouseMoveHandler(evt) {
     let relativeX = evt.clientX - canvas.offsetLeft;
-    if(relativeX > 0 && relativeX < canvas.width) {
+    let outLeft  = relativeX - SIZE_PADDLE_WIDTH/2 <= 0;
+    let outRight = relativeX >= canvas.width - SIZE_PADDLE_WIDTH/2;
+    if ( !outLeft && !outRight) 
+    {
         xPaddle = relativeX - SIZE_PADDLE_WIDTH/2;
+    }
+    else if ( outLeft )
+    {
+        xPaddle = 0;
+    }
+    else if ( outRight )
+    {
+        xPaddle = canvas.width - SIZE_PADDLE_WIDTH;
     }
 }
 
@@ -126,10 +135,10 @@ function keyUpHandler(evt)
 function updatePaddle(ctx)
 {
     if(isKeyRightPressed && xPaddle < ctx.canvas.width - SIZE_PADDLE_WIDTH) {
-        xPaddle += Math.abs(xPaddleNudge);
+        xPaddle += SIZE_PADDLE_NUDGE;
     }
     else if(isKeyLeftPressed && xPaddle > 0) {
-        xPaddle -= Math.abs(xPaddleNudge);
+        xPaddle -= SIZE_PADDLE_NUDGE;
     }
 }
 

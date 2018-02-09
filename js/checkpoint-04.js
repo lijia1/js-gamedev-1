@@ -11,6 +11,7 @@ const COLOR_PADDLE_FILL_STYLE = "#808080"
 const SIZE_BALL_RADIUS        = 10;
 const SIZE_PADDLE_HEIGHT      = 5;
 const SIZE_PADDLE_WIDTH       = 75;
+const SIZE_PADDLE_NUDGE       = 7;
 
 /**
  * Global variables
@@ -20,26 +21,23 @@ let canvas = document.getElementById("myCanvas");
 let context = canvas.getContext("2d");
 
 // Ball's current coordinate
-let xBall = canvas.width / 2;
-let yBall = canvas.height - 30;
+let xBall, yBall;
 
 // Ball's current velocity
-let xBallVelocity =  2;
-let yBallVelocity = -2;
+let xBallVelocity, yBallVelocity;
 
 // Paddle's current coordinate
-let xPaddle = (canvas.width - SIZE_PADDLE_WIDTH)/2;
-let yPaddle = canvas.height - SIZE_PADDLE_HEIGHT;
-
-// Paddle's nudge displacement 
-let xPaddleNudge = 7;
+let xPaddle, yPaddle;
 
 // Keyboard states
 let isKeyRightPressed = false;
 let isKeyLeftPressed  = false;
 
 // is Game Over?
-let isGameOver = false;
+let isGameOver;
+
+// handle to game
+let mainGame;
 
 /**
  * Entry point 
@@ -48,11 +46,13 @@ let isGameOver = false;
 document.addEventListener("keydown",   keyDownHandler,   false);
 document.addEventListener("keyup",     keyUpHandler,     false);
 document.addEventListener("mousemove", mouseMoveHandler, false);
-// start game
-let mainGame = window.setInterval(main, 10, context);
+
+resetGame();
+initBallPaddle(context);
+mainGame = window.setInterval(main, 10, context);
 
 /**
- * Main function of the game
+ * Main draw loop of the game
  * @param {object} ctx The 2D context of a Canvas 
  */
 function main(ctx)
@@ -64,13 +64,10 @@ function main(ctx)
     drawCircle(ctx, xBall, yBall, SIZE_BALL_RADIUS, COLOR_BALL_FILL_STYLE, "");
 
     // draw the paddle
-    drawRect(ctx, xPaddle, yPaddle, SIZE_PADDLE_WIDTH, SIZE_PADDLE_HEIGHT, COLOR_PADDLE_FILL_STYLE);
+    drawRect(ctx, xPaddle, yPaddle, SIZE_PADDLE_WIDTH, SIZE_PADDLE_HEIGHT, COLOR_PADDLE_FILL_STYLE, "");
 
     // update the ball's status
     updateBall(ctx);
-
-    // update the paddle's status
-    updatePaddle(ctx);
 
     // check game-over condition
     if (isGameOver)
@@ -81,6 +78,33 @@ function main(ctx)
         writeText(ctx, "Press the ENTER key to continue", 
                   ctx.canvas.width/2, ctx.canvas.height/2+40, "center", "12pt Helvetica", "red");
     }
+
+    // update the paddle's status
+    updatePaddle(ctx);
+}
+
+/** 
+ * Reset game state 
+ */
+function resetGame()
+{
+    isGameOver = false;
+}
+
+/**
+ * Initialize ball and paddle position
+ * @param {object} ctx The 2D context of a Canvas
+ */
+function initBallPaddle(ctx)
+{
+    xBall = ctx.canvas.width / 2;
+    yBall = ctx.canvas.height - 30;
+
+    xPaddle = (ctx.canvas.width - SIZE_PADDLE_WIDTH) / 2;
+    yPaddle = ctx.canvas.height - SIZE_PADDLE_HEIGHT;
+
+    xBallVelocity =  2;
+    yBallVelocity = -2;
 }
 
 /**
@@ -89,8 +113,19 @@ function main(ctx)
  */
 function mouseMoveHandler(evt) {
     let relativeX = evt.clientX - canvas.offsetLeft;
-    if(relativeX > 0 && relativeX < canvas.width) {
+    let outLeft  = relativeX - SIZE_PADDLE_WIDTH/2 <= 0;
+    let outRight = relativeX >= canvas.width - SIZE_PADDLE_WIDTH/2;
+    if ( !outLeft && !outRight) 
+    {
         xPaddle = relativeX - SIZE_PADDLE_WIDTH/2;
+    }
+    else if ( outLeft )
+    {
+        xPaddle = 0;
+    }
+    else if ( outRight )
+    {
+        xPaddle = canvas.width - SIZE_PADDLE_WIDTH;
     }
 }
 
@@ -132,7 +167,9 @@ function keyUpHandler(evt)
         case "Enter":
             if (isGameOver)
             {
-                document.location.reload();
+                resetGame();
+                initBallPaddle(context);
+                mainGame = window.setInterval(main, 10, context);
                 return;
             }
             break;
@@ -146,10 +183,10 @@ function keyUpHandler(evt)
 function updatePaddle(ctx)
 {
     if(isKeyRightPressed && xPaddle < ctx.canvas.width - SIZE_PADDLE_WIDTH) {
-        xPaddle += Math.abs(xPaddleNudge);
+        xPaddle += SIZE_PADDLE_NUDGE;
     }
     else if(isKeyLeftPressed && xPaddle > 0) {
-        xPaddle -= Math.abs(xPaddleNudge);
+        xPaddle -= SIZE_PADDLE_NUDGE;
     }
 }
 

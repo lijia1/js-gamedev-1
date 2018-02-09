@@ -1,111 +1,80 @@
 "use strict"
 
-/**
- * Global constants
- */
-// Colors, Styles
-const COLOR_BALL_FILL_STYLE   = "#959500";
-const COLOR_PADDLE_FILL_STYLE = "#000000";
+const COLOR_BALL_FILL_STYLE = "#959500";
+const SIZE_BALL_RADIUS      = 10;
 const COLOR_BRICK_FILL_STYLE  = "#AA2222";
 
-// Sizes
-const SIZE_BALL_RADIUS         = 10;
-const SIZE_PADDLE_HEIGHT       =  5;
-const SIZE_PADDLE_WIDTH        = 75;
-const SIZE_PADDLE_NUDGE        =  7;
+// Paddle color and sizes
+const COLOR_PADDLE_FILL_STYLE = "#808080"
+const SIZE_PADDLE_HEIGHT      = 5;
+const SIZE_PADDLE_WIDTH       = 75;
+const SIZE_PADDLE_NUDGE       = 7;
+
 const SIZE_BRICK_HEIGHT        = 20;
 const SIZE_BRICK_WIDTH         = 75;
 const SIZE_BRICK_WALL_GAP_TOP  = 30;
 const SIZE_BRICK_WALL_GAP_LEFT = 30; 
 const SIZE_BRICK_BRICK_GAP     = 10;
+
 const SIZE_NUM_ROWS_BRICKS     =  5;
 const SIZE_NUM_COLS_BRICKS     =  3;
 
-/**
- * Global variables
- */
-// Handle to the 2D context of the Canvas element
+// Get a handle to the 2D context of the Canvas element
 let canvas = document.getElementById("myCanvas");
 let context = canvas.getContext("2d");
 
-// Ball's current coordinate
 let xBall, yBall;
-
-// Ball's current velocity
 let xBallVelocity, yBallVelocity;
-
-// Paddle's current coordinate
 let xPaddle, yPaddle;
 
-// Keyboard states
 let isKeyRightPressed = false;
 let isKeyLeftPressed  = false;
 
-// is Game Over?
-let isGameOver = false;
+let isGameOver;
 
-// handle to game
-let mainGame;
+let bricks = buildBricks();
 
-/**
- * Entry point 
- */
-// register keyboard event handler
+// register keyboard and mouse event handlers
 document.addEventListener("keydown",   keyDownHandler,   false);
 document.addEventListener("keyup",     keyUpHandler,     false);
 document.addEventListener("mousemove", mouseMoveHandler, false);
 
-// reset game states (e.g. score, lives)
 resetGame();
-
-// construct bricks
-let bricks = buildBricks(context);
-
-// start game
 initBallPaddle(context);
-mainGame = window.setInterval(main, 10, context);
+let mainGame = window.setInterval(main, 10, context);
 
 /**
  * Main draw loop of the game
- * @param {object} ctx The 2D context of a Canvas 
+ * @param {object} ctx The 2D context of a Canvas
  */
 function main(ctx)
 {
-    // clear the stage
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-    
-    // draw bricks
+
     drawBricks(ctx);
 
-    // draw the ball
-    drawCircle(ctx, xBall, yBall, SIZE_BALL_RADIUS, COLOR_BALL_FILL_STYLE, "");
-
-    // draw the paddle
+    drawCircle(ctx, xBall, yBall, 
+               SIZE_BALL_RADIUS, COLOR_BALL_FILL_STYLE, "");
     drawRect(ctx, xPaddle, yPaddle, SIZE_PADDLE_WIDTH, SIZE_PADDLE_HEIGHT, COLOR_PADDLE_FILL_STYLE, "");
 
-    // update the ball's status
     updateBall(ctx);
 
-    // check game-over condition
     if (isGameOver)
     {
         window.clearInterval(mainGame);
         writeText(ctx, "GAME OVER", 
-                  ctx.canvas.width/2, ctx.canvas.height/2, "center", "40px Helvetica", "red");
+                  ctx.canvas.width/2, ctx.canvas.height/2, 
+                  "center", "40px Helvetica", "red");
         writeText(ctx, "Press the ENTER key to continue", 
-                  ctx.canvas.width/2, ctx.canvas.height/2+40, "center", "12pt Helvetica", "red");
+                  ctx.canvas.width/2, ctx.canvas.height/2+40, 
+                  "center", "12pt Helvetica", "red");
     }
-    
-    // update the paddle's status
+
     updatePaddle(ctx);
 
-    // update bricks status
     updateBricks();
 }
 
-/** 
- * Reset game state 
- */
 function resetGame()
 {
     isGameOver = false;
@@ -120,7 +89,7 @@ function initBallPaddle(ctx)
     xBall = ctx.canvas.width / 2;
     yBall = ctx.canvas.height - 30;
 
-    xPaddle = (ctx.canvas.width - SIZE_PADDLE_WIDTH) / 2;
+    xPaddle = (ctx.canvas.width - SIZE_PADDLE_WIDTH)/2;
     yPaddle = ctx.canvas.height - SIZE_PADDLE_HEIGHT;
 
     xBallVelocity =  2;
@@ -128,43 +97,7 @@ function initBallPaddle(ctx)
 }
 
 /**
- * Update bricks status - if any of the brick is hit
- */
-function updateBricks()
-{
-    for(let c = 0; c < SIZE_NUM_COLS_BRICKS; c++) {
-        for(let r = 0; r < SIZE_NUM_ROWS_BRICKS; r++) {
-            let b = bricks[c][r];
-            if(b.isHit == false) {
-                let xInRange = (xBall >= b.x && xBall <= b.x + SIZE_BRICK_WIDTH);
-                let yInRangeFromTop    = ((yBall + SIZE_BALL_RADIUS) >= b.y && 
-                                          (yBall + SIZE_BALL_RADIUS) <  b.y + SIZE_BRICK_HEIGHT);
-                let yInRangeFromBottom = ((yBall - SIZE_BALL_RADIUS) >  b.y && 
-                                          (yBall - SIZE_BALL_RADIUS) <= b.y + SIZE_BRICK_HEIGHT);
-                
-                let yInRange = (yBall >= b.y && yBall <= b.y + SIZE_BRICK_HEIGHT);
-                let xInRangeFromLeft  = ((xBall + SIZE_BALL_RADIUS) >= b.x &&
-                                         (xBall + SIZE_BALL_RADIUS) <  b.x + SIZE_BRICK_WIDTH);
-                let xInRangeFromRight = ((xBall - SIZE_BALL_RADIUS) >  b.x &&
-                                         (xBall - SIZE_BALL_RADIUS) <= b.x + SIZE_BRICK_WIDTH);
-                
-                if (xInRange && (yInRangeFromTop || yInRangeFromBottom))
-                {
-                    yBallVelocity = -yBallVelocity;
-                    b.isHit = true;
-                }
-                else if (yInRange && (xInRangeFromLeft || xInRangeFromRight))
-                {
-                    xBallVelocity = -xBallVelocity;
-                    b.isHit = true;
-                }                  
-            }
-        }
-    }
-}
-
-/**
- * Build a 2D matrix of bricks
+ * Build a 2D matrix (array of arrays) of bricks
  * @returns {array} a 2D matrix of bricks
  */
 function buildBricks()
@@ -173,8 +106,10 @@ function buildBricks()
     for(let c = 0; c < SIZE_NUM_COLS_BRICKS; c++) {
         returnValue[c] = [];
         for(let r = 0; r < SIZE_NUM_ROWS_BRICKS; r++) {
-            let xBrick = (r*(SIZE_BRICK_WIDTH  + SIZE_BRICK_BRICK_GAP)) + SIZE_BRICK_WALL_GAP_LEFT;
-            let yBrick = (c*(SIZE_BRICK_HEIGHT + SIZE_BRICK_BRICK_GAP)) + SIZE_BRICK_WALL_GAP_TOP;
+            let xBrick = (r*(SIZE_BRICK_WIDTH  + SIZE_BRICK_BRICK_GAP)) + 
+                          SIZE_BRICK_WALL_GAP_LEFT;
+            let yBrick = (c*(SIZE_BRICK_HEIGHT + SIZE_BRICK_BRICK_GAP)) + 
+                          SIZE_BRICK_WALL_GAP_TOP;
             let brick = {x: xBrick, y: yBrick, isHit: false};
             returnValue[c][r] = brick;
         }
@@ -194,7 +129,9 @@ function drawBricks(ctx)
         {
             let brick = bricks[c][r];
             if (!brick.isHit)
-                drawRect(ctx, brick.x, brick.y, SIZE_BRICK_WIDTH, SIZE_BRICK_HEIGHT, COLOR_BRICK_FILL_STYLE, "");
+                drawRect(ctx, brick.x, brick.y, 
+                         SIZE_BRICK_WIDTH, SIZE_BRICK_HEIGHT, 
+                         COLOR_BRICK_FILL_STYLE, "");
         }
     }
 }
@@ -233,6 +170,7 @@ function keyDownHandler(evt)
         case "Right":
             isKeyRightPressed = true;
             break;
+
         case "ArrowLeft":
         case "Left":
             isKeyLeftPressed = true;
@@ -249,11 +187,15 @@ function keyUpHandler(evt)
     switch(evt.key)
     {
         case "ArrowRight":
+        case "Right":
             isKeyRightPressed = false;
             break;
+
         case "ArrowLeft":
+        case "Left":
             isKeyLeftPressed = false;
             break;
+
         case "Enter":
             if (isGameOver)
             {
@@ -267,46 +209,34 @@ function keyUpHandler(evt)
 }
 
 /**
- * Update the paddle's current status
- * @param {object} ctx The 2D context of a Canvas
- */
-function updatePaddle(ctx)
-{
-    if(isKeyRightPressed && xPaddle < ctx.canvas.width - SIZE_PADDLE_WIDTH) {
-        xPaddle += SIZE_PADDLE_NUDGE;
-    }
-    else if(isKeyLeftPressed && xPaddle > 0) {
-        xPaddle -= SIZE_PADDLE_NUDGE;
-    }
-}
-
-/**
  * Update the ball's current status
- * @param {object} ctx  The 2D context of a Canvas
  */
 function updateBall(ctx)
 {
-    let isHittingRightWall = (xBall + xBallVelocity > (ctx.canvas.width - SIZE_BALL_RADIUS));
+    let isHittingRightWall = (xBall + xBallVelocity > 
+                              (ctx.canvas.width - SIZE_BALL_RADIUS));
     let isHittingLeftWall  = (xBall + xBallVelocity < SIZE_BALL_RADIUS);
     let isHittingUpperWall = (yBall + yBallVelocity < SIZE_BALL_RADIUS);
-    let isHittingLowerWall = (yBall + yBallVelocity > (ctx.canvas.height - SIZE_BALL_RADIUS));
+    let isHittingLowerWall = (yBall + yBallVelocity > 
+                              (ctx.canvas.height - SIZE_BALL_RADIUS));
 
-    // change direction of velocity when hitting the wall
-    if (isHittingRightWall || isHittingLeftWall) 
+    if ( isHittingRightWall || isHittingLeftWall ) 
     {
         xBallVelocity = -xBallVelocity;
     }
-    if (isHittingUpperWall)
+    if ( isHittingUpperWall )
     {
         yBallVelocity = -yBallVelocity;
     }
-    else if (isHittingLowerWall)
+    else if ( isHittingLowerWall )
     {
         // ball is at the lower boundary of the canvas
         // is it hitting the paddle?
-        let isPaddleInRange = (xBall >= xPaddle && xBall <= xPaddle + SIZE_PADDLE_WIDTH);
+        let isPaddleInRange = (xBall >= xPaddle && 
+            xBall <= xPaddle + SIZE_PADDLE_WIDTH);
         if (isPaddleInRange)
         {
+            // treat the paddle like a wall
             yBallVelocity = -yBallVelocity;
         }
         else
@@ -315,40 +245,73 @@ function updateBall(ctx)
         }
     }
 
-    // update ball's location
     xBall += xBallVelocity;
     yBall += yBallVelocity;
 }
 
 /**
- * Draw a circle
- * @param {object} ctx         The 2D context of a Canvas 
- * @param {number} x           X-coordinate of the center of the circle
- * @param {number} y           Y-coordinate of the center of the circle
- * @param {number} radius      Radius of the circle
- * @param {string} fillStyle   Style used to fill the rectangle, e.g. #00FF00, or 
- *                             rgba(0, 255, 0, 0.5), or leave it blank
- * @param {string} strokeStyle Style for the border of the rectangle
+ * Update the paddle's current status
  */
-function drawCircle(ctx, x, y, radius, fillStyle, strokeStyle)
+function updatePaddle(ctx)
 {
-    ctx.beginPath();
-
-    ctx.arc(x, y, radius, 0, Math.PI * 2);
-
-    if (fillStyle != "")
+    if (isKeyRightPressed && 
+        xPaddle < ctx.canvas.width - SIZE_PADDLE_WIDTH) 
     {
-        ctx.fillStyle = fillStyle;
-        ctx.fill();
+        xPaddle += SIZE_PADDLE_NUDGE;
     }
-
-    if (strokeStyle != "")
+    else if (isKeyLeftPressed && 
+             xPaddle > 0) 
     {
-        ctx.strokeStyle = strokeStyle;
-        ctx.stroke();
+        xPaddle -= SIZE_PADDLE_NUDGE;
     }
+}
 
-    ctx.closePath();
+function updateBricks()
+{
+    for(let c = 0; c < SIZE_NUM_COLS_BRICKS; c++) {
+        for(let r = 0; r < SIZE_NUM_ROWS_BRICKS; r++) {
+            let b = bricks[c][r];
+            if(b.isHit == false) {
+                /* Define isHitFromTopOrBottom and isHitFromLeftOrRight */ 
+                let xInRange = (xBall >= b.x && 
+                    xBall <= b.x + SIZE_BRICK_WIDTH);
+    
+                let yInRangeFromTop    
+                    = ((yBall + SIZE_BALL_RADIUS) >= b.y && 
+                    (yBall + SIZE_BALL_RADIUS) <  b.y + SIZE_BRICK_HEIGHT);
+                
+                let yInRangeFromBottom 
+                    = ((yBall - SIZE_BALL_RADIUS) >  b.y && 
+                    (yBall - SIZE_BALL_RADIUS) <= b.y + SIZE_BRICK_HEIGHT);
+                
+                let isHitFromTopOrBottom = (xInRange && 
+                                            (yInRangeFromTop || yInRangeFromBottom));
+                
+                let yInRange = (yBall >= b.y && 
+                    yBall <= b.y + SIZE_BRICK_HEIGHT);
+                
+                let xInRangeFromLeft  
+                    = ((xBall + SIZE_BALL_RADIUS) >= b.x &&
+                        (xBall + SIZE_BALL_RADIUS) <  b.x + SIZE_BRICK_WIDTH);
+                
+                let xInRangeFromRight 
+                    = ((xBall - SIZE_BALL_RADIUS) >  b.x &&
+                        (xBall - SIZE_BALL_RADIUS) <= b.x + SIZE_BRICK_WIDTH);
+                
+                let inHitFromLeftOrRight = (yInRange && 
+                                            (xInRangeFromLeft || xInRangeFromRight));
+
+                if (isHitFromTopOrBottom)
+                {
+                    yBallVelocity = -yBallVelocity; b.isHit = true;
+                }
+                else if (inHitFromLeftOrRight)
+                {
+                    xBallVelocity = -xBallVelocity; b.isHit = true;
+                }                  
+            }
+        }
+    }
 }
 
 /** 
@@ -384,6 +347,37 @@ function drawRect(ctx, x, y, width, height, fillStyle, strokeStyle)
 }
 
 /**
+ * Draw a circle
+ * @param {object} ctx         The 2D context of a Canvas 
+ * @param {number} x           X-coordinate of the center of the circle
+ * @param {number} y           Y-coordinate of the center of the circle
+ * @param {number} radius      Radius of the circle
+ * @param {string} fillStyle   Style used to fill the rectangle, e.g. #00FF00, or 
+ *                             rgba(0, 255, 0, 0.5), or leave it blank
+ * @param {string} strokeStyle Style for the border of the rectangle
+ */
+function drawCircle(ctx, x, y, radius, fillStyle, strokeStyle)
+{
+    ctx.beginPath();
+
+    ctx.arc(x, y, radius, 0, Math.PI * 2);
+
+    if (fillStyle != "")
+    {
+        ctx.fillStyle = fillStyle;
+        ctx.fill();
+    }
+
+    if (strokeStyle != "")
+    {
+        ctx.strokeStyle = strokeStyle;
+        ctx.stroke();
+    }
+
+    ctx.closePath();
+}
+
+/**
  * Write text
  * @param {object} ctx       The 2D context of a Canvas
  * @param {string} text      Text to be written
@@ -401,4 +395,3 @@ function writeText(ctx, text, x, y, alignment, font, fillStyle)
     ctx.fillStyle = fillStyle;
     ctx.fillText(text, x, y);
 }
-

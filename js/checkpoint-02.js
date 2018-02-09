@@ -20,7 +20,7 @@ const SIZE_BALL_RADIUS      = 10;
 window.setInterval(main, 10, context);
 
 /**
- * Main entry point of the game
+ * Main draw loop of the game
  * @param {object} ctx The 2D context of a Canvas 
  */
 function main(ctx)
