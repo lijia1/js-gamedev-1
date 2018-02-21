@@ -1,4 +1,4 @@
-# Workshop Plan :: Javascript Game Dev 
+# Javascript Game Dev :: Workshop Plan
 
 ---
 
