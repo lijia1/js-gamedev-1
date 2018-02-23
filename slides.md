@@ -294,22 +294,22 @@ Clear the canvas!
 Against right wall
 
     !javascript
-    xBall + xVelocity >= ctx.canvas.width
+    xBall + SIZE_BALL_RADIUS + xVelocity >= ctx.canvas.width
 
 Against left wall
 
     !javascript
-    xBall + xVelocity <= 0
+    xBall - SIZE_BALL_RADIUS + xVelocity <= 0
 
 Against top wall
 
     !javascript
-    yBall + yVelocity <= 0
+    yBall - SIZE_BALL_RADIUS + yVelocity <= 0
 
 Against bottom wall
 
     !javascript
-    yBall + yVelocity >= ctx.canvas.height
+    yBall + SIZE_BALL_RADIUS + yVelocity >= ctx.canvas.height
 
 ---
 

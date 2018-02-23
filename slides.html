@@ -61,7 +61,7 @@ div.slide h3 + p, div.slide h4 + p, div.slide h5 + p, div.slide h6 + p {
 }
 
 pre {
-  font-size: 12pt;
+  font-size: 13pt;
   font-family: Monaco, Courier, monospace;
 }
 
@@ -155,18 +155,26 @@ div.titleslide { text-align: center; }
 div.titleslide h1 { padding-top: 50pt; font-size: 60pt; font-weight: bold;}
 
 /* imageslide: covering a whole slide with an image */
-div.slides div.imageslide {margin: 0; width: 750pt; height: 460pt; overflow: hidden}
+div.slides div.imageslide {
+  margin: 0; 
+  width: 750pt; 
+  /*height: 460pt;*/ 
+  height: 540pt; 
+  overflow: hidden
+}
 div.imageslide img { 
   position: relative; 
   /*top: -144pt;*/
-  /*top: -460pt;*/
   /*left: -10pt; */
-  top: -138pt;
+  /*top: -138pt; */
+  top: -560pt;
   left: -10pt;
-  width: 750pt;
-  height: 460pt;
+  width: 100%pt;
+  /*height: 460pt;*/
+  height: 100%pt;
   max-width: 750pt !important; 
-  max-height: 460pt !important; 
+  /*max-height: 460pt !important; */
+  max-height: 540pt !important;
   z-index: 0; 
 }
 
@@ -191,11 +199,11 @@ body {
 }
 
 div.presentation, div.slides {
-    transform: scale(1),
-    -ms-transform: scale(1),
-    -moz-transform: scale(1),
-    -webkit-transform: scale(1),
-    -o-transform: scale(1),
+    transform: scale(1);
+    -ms-transform: scale(1);
+    -moz-transform: scale(1);
+    -webkit-transform: scale(1);
+    -o-transform: scale(1);
 }
 
 /*div.slides {
@@ -206,7 +214,10 @@ div.presentation, div.slides {
 div.slide {
   display: block !important;
   width: 740pt !important;
-  height: 540pt !important; /* jia changed it from 460pt */
+  /* 460pt is for A4 */
+  /* height: 460pt !important; */
+  /* 540pt is for Letter */
+  height: 540pt !important;
   border: 2pt solid #ddd;
 /*  width      : 100%;
   height     : 100%;*/
@@ -735,7 +746,7 @@ body.expose .slide:hover aside.page_number {
   background-color: #eee;
   color: #000;
   border-right: 5px solid #ddd;
-  z-index: 63;
+  z-index: 100;
   height: 100%;
   overflow: hidden;
   top: 0;
@@ -1347,15 +1358,17 @@ body {
         if (!toc) {
             return;
         }
-/*
-        if (!tocOpened && !overviewActive) {
-            presentation.style.marginLeft = '';
-            presentation.style.width = '';
+        /* 
+        // lijia1 commented out this because it is not working
+        // TODO : fix this nicely
+        if (!tocOpened || !overviewActive) {
+            presentation.style.marginLeft = '0px';
+            presentation.style.width = '100%';
         } else {
-            presentation.style.marginLeft = -512 + (tocOpened ? toc.clientWidth : 0) + 'px';
-            presentation.style.width = (presentation.clientWidth - (tocOpened ? toc.clientWidth : 0)) + 'px';
+            presentation.style.marginLeft = toc.clientWidth + 'px';
+            presentation.style.width = (presentation.clientWidth - toc.clientWidth) + 'px';
         }
-*/
+        */
     };
 
     var computeScale = function() {
@@ -2560,19 +2573,19 @@ body {
             
             
             <section><p>Against right wall</p>
-<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="nx">xBall</span> <span class="o">+</span> <span class="nx">xVelocity</span> <span class="o">&gt;=</span> <span class="nx">ctx</span><span class="p">.</span><span class="nx">canvas</span><span class="p">.</span><span class="nx">width</span>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="nx">xBall</span> <span class="o">+</span> <span class="nx">SIZE_BALL_RADIUS</span> <span class="o">+</span> <span class="nx">xVelocity</span> <span class="o">&gt;=</span> <span class="nx">ctx</span><span class="p">.</span><span class="nx">canvas</span><span class="p">.</span><span class="nx">width</span>
 </pre></div>
 </td></tr></table>
 <p>Against left wall</p>
-<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="nx">xBall</span> <span class="o">+</span> <span class="nx">xVelocity</span> <span class="o">&lt;=</span> <span class="mi">0</span>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="nx">xBall</span> <span class="o">-</span> <span class="nx">SIZE_BALL_RADIUS</span> <span class="o">+</span> <span class="nx">xVelocity</span> <span class="o">&lt;=</span> <span class="mi">0</span>
 </pre></div>
 </td></tr></table>
 <p>Against top wall</p>
-<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="nx">yBall</span> <span class="o">+</span> <span class="nx">yVelocity</span> <span class="o">&lt;=</span> <span class="mi">0</span>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="nx">yBall</span> <span class="o">-</span> <span class="nx">SIZE_BALL_RADIUS</span> <span class="o">+</span> <span class="nx">yVelocity</span> <span class="o">&lt;=</span> <span class="mi">0</span>
 </pre></div>
 </td></tr></table>
 <p>Against bottom wall</p>
-<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="nx">yBall</span> <span class="o">+</span> <span class="nx">yVelocity</span> <span class="o">&gt;=</span> <span class="nx">ctx</span><span class="p">.</span><span class="nx">canvas</span><span class="p">.</span><span class="nx">height</span>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="nx">yBall</span> <span class="o">+</span> <span class="nx">SIZE_BALL_RADIUS</span> <span class="o">+</span> <span class="nx">yVelocity</span> <span class="o">&gt;=</span> <span class="nx">ctx</span><span class="p">.</span><span class="nx">canvas</span><span class="p">.</span><span class="nx">height</span>
 </pre></div>
 </td></tr></table></section>
             
